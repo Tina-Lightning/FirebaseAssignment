@@ -51,34 +51,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Northeast Corridor</td>
-                                    <td>Trenton</td>
-                                    <td>10</td>
-                                    <td>15:00</td>
-                                    <td>5</td>
-                                </tr>
-                                <tr>
-                                    <td>Coast Line</td>
-                                    <td>Bay Head</td>
-                                    <td>30</td>
-                                    <td>13:00</td>
-                                    <td>10</td>
-                                </tr>
-                                <tr>
-                                    <td>Main Line</td>
-                                    <td>Suffern</td>
-                                    <td>15</td>
-                                    <td>18:30</td>
-                                    <td>20</td>
-                                </tr>
+
                             </tbody>
                         </table>
                 </div>
             </div>
         </div>
 
-        <!-- Row for Searching New York Times -->
+        <!-- Row for train form-->
         <div class="row">
             <div class="col-sm-12">
                 <br>
@@ -96,29 +76,31 @@
                             <!-- Here we create the text box for capturing the Train Name-->
                             <div class="form-group">
                                 <label for="train-name">Train Name:</label>
-                                <input type="text" class="form-control" id="train-name">
+                                <input type="text" class="form-control" id="train-name" required>
                             </div>
 
                             <!-- Here we capture the Destination Parameter-->
                             <div class="form-group">
                                 <label for="destination">Destination:</label>
-                                <input type="text" class="form-control" id="destination">
+                                <input type="text" class="form-control" id="destination" required>
                             </div>
 
                             <!-- Here we capture the First Train Time Parameter-->
                             <div class="form-group">
                                 <label for="first-train-time">First Train Time (HH:MM) Military Time:</label>
-                                <input type="text" class="form-control" id="first-train-time">
+                                <input type="text" class="form-control" id="first-train-time"
+                                    onchange="validateHhMm(this);" required>
+                                <span id="alert"></span>
                             </div>
 
                             <!-- Here we capture the Frequency Parameter-->
                             <div class="form-group">
                                 <label for="frequency">Frequency (min): </label><span id="alert"></span>
-                                <input type="text" class="form-control" id="frequency">
+                                <input type="number" class="form-control" id="frequency" required>
                             </div>
 
                             <!-- Here we have our final submit button -->
-                            <button type="submit" class="btn btn-secondary" id="submit">
+                            <button type="submit" class="btn btn-secondary" id="submit" disabled>
                                 <i class="fa fa-plus"></i> Submit</button>
 
 
@@ -148,7 +130,9 @@
 
     </div>
 
+    <!-- jQuery Link -->
     <script src="https://code.jquery.com/jquery.js"></script>
+    <!-- My Javascript Link -->
     <script type="text/javascript" src="assets/javascript/script.js"></script>
     <!-- Moment.js Link -->
     <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
@@ -156,121 +140,6 @@
     <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-app.js"></script>
     <!-- Specific Firebase products we want (Database) -->
     <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-database.js"></script>
-
-    <script type="text/javascript">
-
-        // Your web app's Firebase configuration
-        var firebaseConfig = {
-            apiKey: "AIzaSyB74O4LPjEB3PXYgozNGAEUpMAOmdBvkb8",
-            authDomain: "manifest-ivy-149822.firebaseapp.com",
-            databaseURL: "https://manifest-ivy-149822.firebaseio.com",
-            projectId: "manifest-ivy-149822",
-            storageBucket: "manifest-ivy-149822.appspot.com",
-            messagingSenderId: "687451388117",
-            appId: "1:687451388117:web:f479741018f53d54beca5c"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        // Create a variable to reference the database
-        var database = firebase.database();
-
-        // Capture Button Click
-        $("#submit").on("click", function (event) {
-            // prevent page from refreshing when form tries to submit itself
-            event.preventDefault();
-
-            // Capture user inputs and store them into variables
-            var trainName = $("#train-name").val().trim();
-            var destination = $("#destination").val().trim();
-            var firstTrainTime = $("#first-train-time").val().trim();
-            var frequency = $("#frequency").val().trim();
-
-            if (isNaN(frequency)) {
-                //$("#alert").text(" Please enter the frequency as a number")
-                alert("Please enter the frequency as a number");
-            } else {
-                
-            }
-
-            // Code for handling the push
-            database.ref().push({
-                trainName: trainName,
-                destination: destination,
-                firstTrainTime: firstTrainTime,
-                frequency: frequency,
-                dateAdded: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // Clear previous input
-            $("#train-name").val("");
-            $("#destination").val("");
-            $("#first-train-time").val("");
-            $("#frequency").val("");
-
-        });
-
-        // Firebase watcher .on("child_added"
-        database.ref().on("child_added", function (snapshot) {
-            // storing the snapshot.val() in a variable for convenience
-            var sv = snapshot.val();
-
-            // Console log each of the user inputs to confirm we are receiving them
-            console.log(sv.trainName);
-            console.log(sv.destination);
-            console.log(sv.firstTrainTime);
-            console.log(sv.frequency);
-
-            // Some Math & Moment.js to determine train arrivals:
-            // First Time (pushed back 1 year to make sure it comes before current time)
-            var firstTimeConverted = moment(sv.firstTrainTime, "HH:mm").subtract(1, "years");
-            console.log(firstTimeConverted);
-
-            // Current Time
-            var currentTime = moment();
-            console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
-
-            // Difference between the times
-            var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-            console.log("DIFFERENCE IN TIME: " + diffTime);
-
-            // Time apart (remainder)
-            var tRemainder = diffTime % sv.frequency;
-            console.log(tRemainder);
-
-            // Minute Until Train
-            var tMinutesTillTrain = sv.frequency - tRemainder;
-            console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
-
-            // Next Train
-            var nextTrainLong = moment().add(tMinutesTillTrain, "minutes");
-            var nextTrain = moment(nextTrainLong).format("HH:mm");
-            console.log("ARRIVAL TIME: " + moment(nextTrainLong).format("HH:mm"));
-
-
-            // Create new HTML for this new train data
-            var newRow = $("<tr>");
-
-            var trainNameTd = $("<td>").text(sv.trainName);
-            var destinationTd = $("<td>").text(sv.destination);
-            var frequencyTd = $("<td>").text(sv.frequency);
-            var nextTrainTd = $("<td>").text(nextTrain);
-            var tMinutesTillTrainTd = $("<td>").text(tMinutesTillTrain);
-
-            newRow.append(trainNameTd, destinationTd, frequencyTd, nextTrainTd, tMinutesTillTrainTd);
-
-            // Append the table row to the table body
-            $("tBody").append(newRow);
-
-
-            // Handle the errors
-        }, function (errorObject) {
-            console.log("Errors handled: " + errorObject.code);
-        });
-
-
-
-
-    </script>
 
 </body>
 
