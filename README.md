@@ -24,5 +24,6 @@ This is a train schedule application that incorporates Firebase to host arrival 
 * HTML
 * Bootstrap
 * CSS
+* Font Awesome
 
 Deployed GitHub Link: [https://tina-lightning.github.io/FirebaseAssignment/](https://tina-lightning.github.io/FirebaseAssignment/)
